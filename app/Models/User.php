@@ -39,7 +39,7 @@ class User extends Authenticatable implements JWTSubject
         'semester',
         'year',
         'organisation_id',
-       
+
     ];
 
     /**
@@ -76,16 +76,16 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
-    
-    
+
+
     // relation for a member and  prompt
     //   public function prompts(){
     //     return $this->hasMany(Prompt::class);
 
     // }
-    
-        public function prompts() // Ensure the method name is 'prompts' and not 'promps'
+
+        public function chats() // Ensure the method name is 'prompts' and not 'promps'
     {
-        return $this->hasMany(Prompt::class);
+        return $this->hasMany(Chat::class);
     }
 }

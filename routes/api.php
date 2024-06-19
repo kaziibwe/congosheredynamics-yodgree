@@ -30,16 +30,16 @@ Route::group([
 
 
 ], function ($router) {
-    
-    
-    
+
+
+
     Route::post('registerAdmin', [AdminController::class, 'registerAdmin'])->name('registerAdmin');
     Route::post('loginAdmin', [AdminController::class, 'loginAdmin'])->name('loginAdmin');
     Route::get('profileAdmin', [AdminController::class, 'profileAdmin'])->name('profileAdmin');
     Route::post('logoutAdmin', [AdminController::class, 'logoutAdmin'])->name('logoutAdmin');
     Route::post('refreshAdmin', [AdminController::class, 'refreshAdmin'])->name('refreshAdmin');
-    
-    
+
+
 
 
 
@@ -66,7 +66,7 @@ Route::group([
     // route payment
     Route::post('/payAidas', [UserController::class, 'initialize'])->name('pay');
 
-   
+
     Route::get('/rave/callback', [UserController::class, 'callback'])->name('callback');
 
 
@@ -75,16 +75,16 @@ Route::group([
 
 
     Route::post('verifyingCode', [UserController::class, 'verifyingCode'])->name('verifyingCode');
-    
+
 
 // create chart  with in the respons table
     Route::post('createNewChats', [UserController::class, 'createNewChats'])->name('createNewChats');
-    
-    // update chat 
+
+    // update chat
         Route::put('updateNewChats', [UserController::class, 'updateNewChats'])->name('updateNewChats');
 
 
-// route to send prompt 
+// route to send prompt
     Route::post('createPrompts', [UserController::class, 'createPrompts'])->name('createPrompts');
 
 // route to send responses
@@ -97,7 +97,35 @@ Route::get('readChat/{id}', [UserController::class, 'readChat'])->name('readChat
 Route::get('requestAndResponses/{id}', [UserController::class, 'requestAndResponses'])->name('requestAndResponses');
 
 
-// route to 
+// route to
     Route::post('aiApi', [UserController::class, 'aiApi'])->name('aiApi');
+
+
+
+
+    //create new chat
+    Route::post('createChat', [UserController::class, 'createChat'])->name('createChat');
+
+
+    // update the chat
+    Route::patch('updateChats', [UserController::class, 'updateChats'])->name('updateChats');
+
+    //  create message as you query the ai
+
+    Route::post('aiApi', [UserController::class, 'aiApi'])->name('aiApi');
+
+    // read all  user chats
+    Route::get('readChat/{id}', [UserController::class, 'readChat'])->name('readChat');
+
+
+
+      // read all   chats messages
+      Route::get('readMessages/{id}/chats', [UserController::class, 'readMessages'])->name('readMessages');
+
+    //   delete chat
+    Route::delete('deleteChat/{id}', [UserController::class, 'deleteChat'])->name('deleteChat');
+
+    // route to  register mobile
+    Route::Post('mobileRegistration', [UserController::class, 'mobileRegistration'])->name('mobileRegistration');
 
 });
