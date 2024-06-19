@@ -1098,11 +1098,11 @@ class UserController extends Controller
     $curl = curl_init();
 
     curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://yourbaseurl.com/sms/2/text/advanced', // Replace with actual base URL
+        CURLOPT_URL => 'https://3gpzjj.api.infobip.com', // Replace with actual base URL
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
+        CURLOPT_TIMEOUT => 15,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
@@ -1110,15 +1110,15 @@ class UserController extends Controller
             'messages' => [
                 [
                     'destinations' => [
-                        ['to' => '41793026727']
+                        ['to' => '0758624016']
                     ],
                     'from' => 'InfoSMS',
-                    'text' => 'This is a sample message'
+                    'text' => 'This  is alfred code 123456'
                 ]
             ]
         ]),
         CURLOPT_HTTPHEADER => array(
-            'Authorization: Bearer your-authorization-token', // Replace with actual authorization token
+            'Authorization: Bearer 3aaf45891bb3478f7385caa52e1fe72c-bcc8c4f2-c0fe-4acd-9f59-da7076fec661', // Replace with actual authorization token
             'Content-Type: application/json',
             'Accept: application/json'
         ),
