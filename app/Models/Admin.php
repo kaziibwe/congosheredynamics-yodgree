@@ -23,6 +23,10 @@ class Admin extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name',
         'email',
+        'location',
+        'phone',
+        'role',
+        'image',
         'password',
     ];
 
@@ -56,8 +60,8 @@ class Admin extends Authenticatable implements JWTSubject
     {
         return [];
     }
-    
-    
+
+
         public $timestamps = false;
 
 }

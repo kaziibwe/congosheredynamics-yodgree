@@ -33,20 +33,6 @@ Route::group([
 
 
 
-    Route::post('registerAdmin', [AdminController::class, 'registerAdmin'])->name('registerAdmin');
-    Route::post('loginAdmin', [AdminController::class, 'loginAdmin'])->name('loginAdmin');
-    Route::get('profileAdmin', [AdminController::class, 'profileAdmin'])->name('profileAdmin');
-    Route::post('logoutAdmin', [AdminController::class, 'logoutAdmin'])->name('logoutAdmin');
-    Route::post('refreshAdmin', [AdminController::class, 'refreshAdmin'])->name('refreshAdmin');
-
-
-
-
-
-
-
-
-
 
 
     Route::post('registerUser', [UserController::class, 'registerUser'])->name('registerUser');
@@ -55,7 +41,7 @@ Route::group([
     Route::post('logoutUser', [UserController::class, 'logoutUser'])->name('logoutUser');
     Route::post('refreshUser', [UserController::class, 'refreshUser'])->name('refreshUser');
 
-
+   
     Route::get('usersshow', [UserController::class, 'usersshow']);
     Route::get('usersshow/{id}', [UserController::class, 'usersshowId']);
     Route::put('/updating/{id}', [UserController::class, 'updating']);
@@ -99,8 +85,6 @@ Route::get('requestAndResponses/{id}', [UserController::class, 'requestAndRespon
 
 // route to
     Route::post('aiApi', [UserController::class, 'aiApi'])->name('aiApi');
-
-
 
 
     //create new chat
