@@ -41,7 +41,7 @@ Route::group([
     Route::post('logoutUser', [UserController::class, 'logoutUser'])->name('logoutUser');
     Route::post('refreshUser', [UserController::class, 'refreshUser'])->name('refreshUser');
 
-   
+
     Route::get('usersshow', [UserController::class, 'usersshow']);
     Route::get('usersshow/{id}', [UserController::class, 'usersshowId']);
     Route::put('/updating/{id}', [UserController::class, 'updating']);
@@ -87,6 +87,10 @@ Route::get('requestAndResponses/{id}', [UserController::class, 'requestAndRespon
     Route::post('aiApi', [UserController::class, 'aiApi'])->name('aiApi');
 
 
+
+
+
+
     //create new chat
     Route::post('createChat', [UserController::class, 'createChat'])->name('createChat');
 
@@ -111,5 +115,13 @@ Route::get('requestAndResponses/{id}', [UserController::class, 'requestAndRespon
 
     // route to  register mobile
     Route::Post('mobileRegistration', [UserController::class, 'mobileRegistration'])->name('mobileRegistration');
+
+
+     // read all  admin
+     Route::get('getAllAdmin', [AdminController::class, 'getAllAdmin'])->name('getAllAdmin');
+
+    //  get the single admin
+    Route::get('getSingleAdmin/{id}', [AdminController::class, 'getSingleAdmin'])->name('getSingleAdmin');
+
 
 });

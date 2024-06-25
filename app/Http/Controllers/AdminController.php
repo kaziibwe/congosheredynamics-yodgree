@@ -80,7 +80,7 @@ protected function respondWithToken($token)
 {
     // $user = auth()->guard('admin-api')->user();
     $user = auth()->guard('admin-api')->user();
-    $userData = $user->only('email', 'role', 'phone', 'name','location','image', );
+    $userData = $user->only('email', 'role', 'phone', 'name','location','sex', );
 
     return response()->json([
         'access_token' => $token,
@@ -141,4 +141,23 @@ protected function respondWithToken($token)
 
 
     }
+
+
+
+    public function getAllAdmin(){
+        $Admins =   Admin::all();
+        return response()->json(['Admins'=>$Admins],200);
+       }
+    public function getSingleAdmin($id){
+        $Admin = Admin::find($id);
+        if(!$Admin){
+           return response()->json(['message'=>'Admin Not Found'],401);
+        }
+        return response()->json(['Admin'=>$Admin],200);
+
+
+   }
+
+
+
 }
