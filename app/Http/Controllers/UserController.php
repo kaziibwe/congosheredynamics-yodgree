@@ -9,17 +9,24 @@ use App\Models\Chat;
 use App\Models\User;
 use App\Models\Prompt;
 
+use Infobip\Api\SmsApi;
+
 use App\Mail\VerifyMail;
-
+use Infobip\ApiException;
+use Infobip\Configuration;
 use App\Models\Organisation;
-
 use Illuminate\Http\Request;
+
+
 use Illuminate\Validation\Rule;
+use Infobip\Model\SmsDestination;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Infobip\Model\SmsTextualMessage;
+use Infobip\Model\SmsAdvancedTextualRequest;
 use Illuminate\Validation\ValidationException;
 use KingFlamez\Rave\Facades\Rave as Flutterwave;
 
@@ -1058,7 +1065,7 @@ class UserController extends Controller
             $messages = $chat->messages()->get();
 
             return response()->json([
-                "chat"=>$chat,
+                "chat" => $chat,
                 'messages' => $messages
             ], 200);
         } catch (Exception $e) {
@@ -1093,87 +1100,203 @@ class UserController extends Controller
     }
 
 
+
     public function mobileRegistration()
-{
-    $curl = curl_init();
+    {
 
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://3gpzjj.api.infobip.com', // Replace with actual base URL
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 15,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => json_encode([
-            'messages' => [
-                [
-                    'destinations' => [
-                        ['to' => '0758624016']
-                    ],
-                    'from' => 'InfoSMS',
-                    'text' => 'This  is alfred code 123456'
-                ]
-            ]
-        ]),
-        CURLOPT_HTTPHEADER => array(
-            'Authorization: Bearer 3aaf45891bb3478f7385caa52e1fe72c-bcc8c4f2-c0fe-4acd-9f59-da7076fec661', // Replace with actual authorization token
-            'Content-Type: application/json',
-            'Accept: application/json'
-        ),
-    ));
+        $phone='+256785557587';
+      $host ='https://3gpzjj.api.infobip.com';
+      $key='3aaf45891bb3478f7385caa52e1fe72c-bcc8c4f2-c0fe-4acd-9f59-da7076fec661';
 
-    $response = curl_exec($curl);
-    $error = curl_error($curl);
-    curl_close($curl);
+    
 
-    if ($error) {
-        return response()->json(['error' => 'Request failed: ' . $error], 500);
+        $configuration = new Configuration(
+            host: $host,
+            apiKey: $key
+        );
+
+        $sendSmsApi = new SmsApi(config: $configuration);
+
+    $message = new SmsTextualMessage(
+        destinations: [
+            new SmsDestination(to: $phone)
+        ],
+        from: 'InfoSMS',
+        text: 'This is a dummy SMS message sent using infobip-api-php-client'
+    );
+
+    $request = new SmsAdvancedTextualRequest(messages: [$message]);
+
+    try {
+        $smsResponse = $sendSmsApi->sendSmsMessage($request);
+        return response()->json([
+            'message' => 'Message sent successfully',
+            'data' => $smsResponse
+        ]);
+    } catch (ApiException $apiException) {
+        return response()->json([
+            'message' => 'Failed to send message',
+            'errors' => $apiException->getResponseBody()
+        ], 500);
+    } catch (Exception $e) {
+        return response()->json([
+            'message' => 'An error occurred',
+            'errors' => $e->getMessage()
+        ], 500);
+    }
+        
+    }
+    // public function mobileRegistration()
+    // {
+
+    //     $phone='256785557587';
+
+    //     $configuration = new Configuration(
+    //         host: 'https://3gpzjj.api.infobip.com',
+    //         apiKey: '3aaf45891bb3478f7385caa52e1fe72c-bcc8c4f2-c0fe-4acd-9f59-da7076fec661'
+    //     );
+
+    //     $sendSmsApi = new SmsApi(config: $configuration);
+
+    //     $message = new SmsTextualMessage(
+    //         destinations: [
+    //             new SmsDestination(to:$phone)
+    //         ],
+    //         from: 'Cognosheredynamics',
+    //         text: 'This is a dummy SMS message sent using infobip-api-php-client'
+    //     );
+
+    //     $request = new SmsAdvancedTextualRequest([
+    //         'messages' => [$message]
+    //     ]);
+
+    //     try {
+    //         $smsResponse = $sendSmsApi->sendSmsMessage($request);
+    //         return response()->json([
+    //             'message' => 'Message sent successfully',
+    //             'data' => $smsResponse
+    //         ]);
+    //     } catch (ApiException $apiException) {
+    //         return response()->json([
+    //             'message' => 'Failed to send message',
+    //             'errors' => $apiException->getResponseBody()
+    //         ], 500);
+    //     } catch (Exception $e) {
+    //         return response()->json([
+    //             'message' => 'An error occurred',
+    //             'errors' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+
+
+    public function mobileRegistrationj()
+    {
+
+        $configuration = new Configuration(
+            host: 'https://3gpzjj.api.infobip.com',
+            apiKey: '3aaf45891bb3478f7385caa52e1fe72c-bcc8c4f2-c0fe-4acd-9f59-da7076fec661'
+        );
+
+
+        $sendSmsApi = new SmsApi(config: $configuration);
+
+        $message = new SmsTextualMessage(
+            destinations: [
+                new SmsDestination(to: '+256785557587')
+            ],
+            from: 'Cognosheredynamics',
+            text: 'This is a dummy SMS message sent using infobip-api-php-client'
+        );
+
+        $request = new SmsAdvancedTextualRequest(messages: [$message]);
+
+        try {
+            $smsResponse = $sendSmsApi->sendSmsMessage($request);
+            return response()->json(['message' => 'message sent sussessfully', 'data' => $smsResponse]);
+        } catch (ApiException $apiException) {
+            return response()->json(['message' => $apiException],);
+        }
+        // $curl = curl_init();
+
+        // curl_setopt_array($curl, array(
+        //     CURLOPT_URL => 'https://3gpzjj.api.infobip.com', // Replace with actual base URL
+        //     CURLOPT_RETURNTRANSFER => true,
+        //     CURLOPT_ENCODING => '',
+        //     CURLOPT_MAXREDIRS => 10,
+        //     CURLOPT_TIMEOUT => 15,
+        //     CURLOPT_FOLLOWLOCATION => true,
+        //     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        //     CURLOPT_CUSTOMREQUEST => 'POST',
+        //     CURLOPT_POSTFIELDS => json_encode([
+        //         'messages' => [
+        //             [
+        //                 'destinations' => [
+        //                     ['to' => '256785557587']
+        //                 ],
+        //                 'from' => 'InfoSMS',
+        //                 'text' => 'This  is alfred code 123456'
+        //             ]
+        //         ]
+        //     ]),
+        //     CURLOPT_HTTPHEADER => array(
+        //         'Authorization: Bearer 3aaf45891bb3478f7385caa52e1fe72c-bcc8c4f2-c0fe-4acd-9f59-da7076fec661', // Replace with actual authorization token
+        //         'Content-Type: application/json',
+        //         'Accept: application/json'
+        //     ),
+        // ));
+
+        // $response = curl_exec($curl);
+        // $error = curl_error($curl);
+        // curl_close($curl);
+
+        // if ($error) {
+        //     return response()->json(['error' => 'Request failed: ' . $error], 500);
+        // }
+
+        // $responseDecoded = json_decode($response, true);
+
+        // return response()->json($responseDecoded);
     }
 
-    $responseDecoded = json_decode($response, true);
 
-    return response()->json($responseDecoded);
-}
-
-
-//     public function mobileRegistration(){
-//  $curl = curl_init();
-//  curl_setopt_array($curl, array(
-//      CURLOPT_URL => ‘https://%7BbaseUrl%7D/sms/2/text/advanced’,
-//      CURLOPT_RETURNTRANSFER => true,
-//      CURLOPT_ENCODING => ”,
-//      CURLOPT_MAXREDIRS => 10,
-//      CURLOPT_TIMEOUT => 0,
-//      CURLOPT_FOLLOWLOCATION => true,
-//      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-//      CURLOPT_CUSTOMREQUEST => ‘POST’,
-//      CURLOPT_POSTFIELDS =>‘{“messages”:[{“destinations”:[{“to”:”41793026727″}],”from”:”InfoSMS”,”text”:”This is a sample message”}]}’,
-//      CURLOPT_HTTPHEADER => array(
-//          ‘Authorization: {authorization}’,
-//          ‘Content-Type: application/json’,
-//          ‘Accept: application/json’
-//      ),
-//  ));
-//  $response = curl_exec($curl);
-//  curl_close($curl);
-//  echo $response;
+    //     public function mobileRegistration(){
+    //  $curl = curl_init();
+    //  curl_setopt_array($curl, array(
+    //      CURLOPT_URL => ‘https://%7BbaseUrl%7D/sms/2/text/advanced’,
+    //      CURLOPT_RETURNTRANSFER => true,
+    //      CURLOPT_ENCODING => ”,
+    //      CURLOPT_MAXREDIRS => 10,
+    //      CURLOPT_TIMEOUT => 0,
+    //      CURLOPT_FOLLOWLOCATION => true,
+    //      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    //      CURLOPT_CUSTOMREQUEST => ‘POST’,
+    //      CURLOPT_POSTFIELDS =>‘{“messages”:[{“destinations”:[{“to”:”41793026727″}],”from”:”InfoSMS”,”text”:”This is a sample message”}]}’,
+    //      CURLOPT_HTTPHEADER => array(
+    //          ‘Authorization: {authorization}’,
+    //          ‘Content-Type: application/json’,
+    //          ‘Accept: application/json’
+    //      ),
+    //  ));
+    //  $response = curl_exec($curl);
+    //  curl_close($curl);
+    //  echo $response;
 
 
-// $curl = curl_init();
+    // $curl = curl_init();
 
-// // Set cURL options
-// curl_setopt_array($curl, [
-//     CURLOPT_URL => $aiServerUrl,
-//     CURLOPT_RETURNTRANSFER => true,
-//     CURLOPT_FOLLOWLOCATION => true,
-//     CURLOPT_TIMEOUT => 30, // Increase timeout to 30 seconds
-//     CURLOPT_HTTPGET => true, // Use GET method
-//     CURLOPT_SSL_VERIFYPEER => false, // Enable SSL verification
-//     CURLOPT_SSL_VERIFYHOST => false, // Enable SSL host verification Disable SSL verification (not recommended for production)
-// ]);
-//     }
+    // // Set cURL options
+    // curl_setopt_array($curl, [
+    //     CURLOPT_URL => $aiServerUrl,
+    //     CURLOPT_RETURNTRANSFER => true,
+    //     CURLOPT_FOLLOWLOCATION => true,
+    //     CURLOPT_TIMEOUT => 30, // Increase timeout to 30 seconds
+    //     CURLOPT_HTTPGET => true, // Use GET method
+    //     CURLOPT_SSL_VERIFYPEER => false, // Enable SSL verification
+    //     CURLOPT_SSL_VERIFYHOST => false, // Enable SSL host verification Disable SSL verification (not recommended for production)
+    // ]);
+    //     }
 
     public function aiApi(Request $request)
     {
