@@ -114,7 +114,7 @@ Route::get('requestAndResponses/{id}', [UserController::class, 'requestAndRespon
     Route::delete('deleteChat/{id}', [UserController::class, 'deleteChat'])->name('deleteChat');
 
     // route to  register mobile
-    Route::Post('mobileRegistration', [UserController::class, 'mobileRegistration'])->name('mobileRegistration');
+    // Route::Post('mobileRegistration', [UserController::class, 'mobileRegistration'])->name('mobileRegistration');
 
 
      // read all  admin
