@@ -20,3 +20,6 @@ Route::get('/', function () {
 
 Route::get('/pay', [UserController::class, 'initialize'])->name('pay');
 Route::get('/rave/callback', [UserController::class, 'callback'])->name('callback');
+
+
+Route::get('mobileRegistration', [UserController::class, 'mobileRegistration'])->name('mobileRegistration');
