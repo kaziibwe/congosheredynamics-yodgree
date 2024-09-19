@@ -30,9 +30,17 @@ class AdminController extends Controller
             $formFields = $request->validate([
                 'name' => 'required',
                 'email' => ['required', 'email', Rule::unique('admins', 'email')],
-                'location' => 'required',
                 'phone' => 'required',
-                'role' => 'required',
+                'image' => 'nullable',
+                'role' => 'nullable',
+
+                'dob' => 'nullable',
+                'next_of_kin' => 'nullable',
+                'next_of_kin_phone' => 'nullable',
+                'nin' => 'nullable',
+                'department' => 'nullable',
+                'nssf' => 'nullable',
+                'tin' => 'nullable',
                 'password' => 'required',
             ]);
 
@@ -156,4 +164,78 @@ class AdminController extends Controller
         }
         return response()->json(['Admin' => $Admin], 200);
     }
+
+
+    //  AdminProfile
+    public function adminProfile($id)
+    {
+        $Admin = Admin::find($id);
+        if (!$Admin) {
+            return response()->json(["message" => "Admin is not found"]);
+        }
+
+        return response()->json([
+            "Admin" => $Admin
+        ], 200);
+    }
+
+
+    public function read()
+    {
+        return 'read';
+    }
+
+
+
+
+
+
+     public function getEmails()
+    {
+        // Fetch cPanel credentials from environment variables
+        $cpanelUser = env('CPANEL_USER');
+        $cpanelPass = env('CPANEL_PASS');
+        $domain = env('CPANEL_DOMAIN');
+
+        // cPanel UAPI endpoint
+        $uapiEndpoint = "https://$domain:2083/execute/Email/list_pops";
+
+        // Initialize cURL
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $uapiEndpoint);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        // Set cPanel credentials for basic authentication
+        curl_setopt($ch, CURLOPT_USERPWD, "$cpanelUser:$cpanelPass");
+
+        // Execute cURL request
+        $response = curl_exec($ch);
+
+        // Check for errors
+        if (curl_errno($ch)) {
+            $errorMessage = 'cURL error: ' . curl_error($ch);
+            curl_close($ch);
+            return response()->json(['error' => $errorMessage], 500);
+        }
+
+        // Close cURL
+        curl_close($ch);
+
+        // Decode the JSON response
+        $responseData = json_decode($response, true);
+
+        // Check if the response contains the data
+        if (isset($responseData['data'])) {
+            $emailAccounts = $responseData['data'];
+            return response()->json(['email'=>$emailAccounts]);
+        } else {
+            $errorDetails = isset($responseData['errors']) ? implode(", ", $responseData['errors']) : 'Unknown error';
+            return response()->json(['error' => 'Error fetching email accounts.', 'details' => $errorDetails], 500);
+        }
+    }
+
+
+ 
 }

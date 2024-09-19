@@ -14,12 +14,12 @@ use App\Http\Controllers\UserController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+ Route::get('/', function () {
+     return view('welcome');
+ });
 
-Route::get('/pay', [UserController::class, 'initialize'])->name('pay');
-Route::get('/rave/callback', [UserController::class, 'callback'])->name('callback');
+// Route::get('/pay', [UserController::class, 'initialize'])->name('pay');
+// Route::get('/rave/callback', [UserController::class, 'callback'])->name('callback');
 
 
-Route::get('mobileRegistration', [UserController::class, 'mobileRegistration'])->name('mobileRegistration');
+// Route::get('mobileRegistration', [UserController::class, 'mobileRegistration'])->name('mobileRegistration');

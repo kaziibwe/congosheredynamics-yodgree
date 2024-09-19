@@ -9,15 +9,16 @@ use App\Models\Chat;
 use App\Models\User;
 use App\Models\Prompt;
 
-use Infobip\Api\SmsApi;
+use App\Models\Payment;
 
+use Infobip\Api\SmsApi;
 use App\Mail\VerifyMail;
 use Infobip\ApiException;
 use Infobip\Configuration;
 use App\Models\Organisation;
+
+
 use Illuminate\Http\Request;
-
-
 use Illuminate\Validation\Rule;
 use Infobip\Model\SmsDestination;
 use Illuminate\Support\Facades\DB;
@@ -142,6 +143,38 @@ class UserController extends Controller
 
 
 
+
+
+    public function registerTwogereAdmin(Request $request, $id)
+    {
+        try {
+            $validatedData = $request->validate([
+                'name' => 'nullable|string',
+                'username' => 'nullable|string',
+                'email' => 'nullable|email',
+                'phone' => 'nullable|string',
+                'role' => 'required|string',
+                'product' => 'nullable|string',
+                'organisation_id' => 'required'
+
+
+
+
+
+
+            ]);
+            if ($request->hasFile('image')) {
+                $validatedData['image'] = $request->file('image')->store('images', 'public');
+            }
+
+            $user =  User::create($validatedData);
+
+            return response()->json(['message' => 'User created successfully', "user" => $user], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Something went wrong'], 500);
+        }
+    }
+
     public function loginUser(Request $request)
     {
         $credentials = request(['email', 'password']);
@@ -152,11 +185,13 @@ class UserController extends Controller
     }
 
 
+
+
     protected function respondWithToken($token)
     {
         // $user = auth()->guard('user-api')->user();
         $user = auth()->guard('user-api')->user();
-        $userData = $user->only('email', 'username', 'phone', 'name');
+        $userData = $user->only('email', 'username', 'phone', 'name', 'id', 'organisation_id');
 
         return response()->json([
             'access_token' => $token,
@@ -206,6 +241,30 @@ class UserController extends Controller
                 return response()->json([]);
             }
             $users = User::all();
+            return response()->json([
+                // 'results' => $users
+                'results' => $users
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch users',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+    public function twogereAdminUsers()
+    {
+        try {
+
+            // $authenticatedUser = Auth::guard('user-api')->user();
+            // if (!$authenticatedUser) {
+            //     return response()->json([]);
+
+            $roles =['admin', 'adminuser'];
+            // }
+            $users = User::all()->where('role',$roles);
             return response()->json([
                 // 'results' => $users
                 'results' => $users
@@ -318,13 +377,16 @@ class UserController extends Controller
     }
 
 
-    public function initialize(Request $request)
+    public function initialize1(Request $request)
 
     {
         try {
             // return response()->json('hello');
             //This generates a payment reference
             $userPayment = $request->validate([
+                'organisation_id' => 'required|exists:organisations,id', // Validate the selected category
+                'organisation_email' => 'required|exists:organisations,id', // Validate the selected category
+
                 'name' => 'string',
                 'email' => 'required|email',
                 'phone' => 'string',
@@ -338,7 +400,10 @@ class UserController extends Controller
                 'external_advertising' => 'string',
                 'social_Profiles' => 'string',
                 'subscription_period' => 'string',
-                'business_type' => 'required | string'
+                'business_type' => 'required | string',
+                'product' => 'nullable',
+                'feedback' => 'nullable'
+
 
 
                 // 'password' => 'required|min:6',
@@ -361,6 +426,12 @@ class UserController extends Controller
             $subscription_period = $request->input('subscription_period');
             $social_profile = $request->input('social_profile');
             $business_type = $request->input('business_type');
+            $product = $request->input('product');
+            $organisation_id = $request->input('organisation_id');
+            $feedback = $request->input('feedback');
+
+
+
 
 
 
@@ -384,6 +455,9 @@ class UserController extends Controller
                 'phone_number' => $phone,
                 'phone' => $phone,
                 'tx_ref' => $reference,
+                "business_type" => $business_type,
+                "organisation_id" => $organisation_id,
+                "feedback" => $feedback,
 
                 'currency' => "UGX",
                 'redirect_url' => $url,
@@ -401,6 +475,12 @@ class UserController extends Controller
                     "external_advertising" => $external_advertising,
                     "subscription_period" => $subscription_period,
                     "business_type" => $business_type,
+                    "product" => $product,
+                    "business_type" => $business_type,
+                    "organisation_id" => $organisation_id,
+                    "feedback" => $feedback,
+
+
 
                 ],
 
@@ -435,8 +515,117 @@ class UserController extends Controller
 
 
 
+    public function initialize(Request $request)
+
+    {
+        try {
+
+            $userPayment = $request->validate([
+                'phone' => 'string|required',
+                'amount' => 'required | string',
+                'organisation_id' => 'required | string',
+                'product' => 'required | string',
+                'subscription_period' => 'required | string'
+
+            ]);
+            $phone = $request->input('phone');
+            $amount = $request->input('amount');
+            $organisation_id = $request->input('organisation_id');
+            $product = $request->input('product');
+            $subscription_period = $request->input('subscription_period');
+
+            $reference = Flutterwave::generateReference();
+
+            $url = "https://api.cognospheredynamics.com/api/auth/rave/callback";
+            // Enter the details of the payment
+            $data = [
+                'payment_options' => 'card,banktransfer',
+                'amount' => $amount,
+                'phone_number' => $phone,
+
+                'tx_ref' => $reference,
+
+                'currency' => "UGX",
+                'redirect_url' => $url,
+                'customer' => [
+                    "phone_number" => $phone,
+                    "subscription_period" => $subscription_period,
+                ],
+
+                "customizations" => [
+                    "title" => 'Payments at Cognosphere for' . $product,
+                    "description" => " This is the payment "
+                ]
+            ];
+
+            //   return response()->json($data);
+
+            $payment = Flutterwave::initializePayment($data);
+
+            if ($payment['status'] !== 'success') {
+                // notify something went wrong
+                return redirect()->json('something went wrong');
+            }
+
+            $paymentLink = $payment['data']['link'];
 
 
+            return response()->json(['paymentLink' => $paymentLink]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch users',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+
+
+    public function editOrganisation(Request $request, $id)
+    {
+
+        try {
+
+
+            $organisation = Organisation::find($id);
+            if (!$organisation) {
+                return response()->json(
+                    ['message' => 'Organisation not found'],
+                    200
+                );
+            }
+            $userInsert = $request->validate([
+
+                'organisation_phone' => 'string|nullable',
+                'organisation_address' => 'string|nullable',
+                'nature_of_business' => 'string|nullable',
+                'image' => 'nullable|string',
+                'number_of_users' => 'string',
+                'organisation_value' => 'string|nullable',
+                'organisation_email' => 'string | nullable',
+                'organisation_website' => 'string | nullable',
+                'organisation_name' => 'string | nullable',
+                'country' => 'string|nullable',
+                'state' => 'string|nullable',
+                'zip' => 'string|nullable',
+            ]);
+
+
+
+            // Handle image upload if exists
+            if ($request->hasFile('image')) {
+                $userInsert['image'] = $request->file('image')->store('images', 'public');
+            }
+
+            // Update user data
+            $organisation->update($userInsert);
+
+            return response()->json(['message' => 'Organisation updated successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Something went wrong'], 500);
+        }
+    }
 
     public function sendMailForVerification(Request $request)
     {
@@ -452,14 +641,26 @@ class UserController extends Controller
                 'gender' => 'string',
                 'age' => 'string',
                 'password' => 'string|required',
-
                 'institution' => 'string',
                 'level_of_education' => 'string',
                 'semester' => 'string',
                 'year' => 'string',
+                'course' => 'string',
+                'role' => 'string',
+                'product' => 'required',
+
+
+                'organisation_phone' => 'string',
+                'organisation_address' => 'string',
+                'nature_of_business' => 'string',
+                'organisation_logo' => 'nullable',
+                'number_of_users' => 'string',
                 'organisation_value' => 'string|nullable',
-                'organisation_email' => 'string|nullable',
-                'organisation_website' => 'string|nullable',
+                // 'organisation_email' => 'string|nullable',
+                'organisation_email' => ['string', 'nullable', Rule::unique('organisations', 'organisation_email')],
+
+                // 'organisation_website' => 'string|nullable',
+                'organisation_website' => ['string', 'nullable', Rule::unique('organisations', 'organisation_website')],
                 'organisation_name' => ['string', 'nullable', Rule::unique('organisations', 'organisation_name')],
                 'country' => 'string|nullable',
                 'state' => 'string|nullable',
@@ -475,13 +676,22 @@ class UserController extends Controller
             $phone = $request->input('phone');
             $phone1 = $request->input('phone1');
             $gender = $request->input('gender');
+            $product = $request->input('product');
             $age = $request->input('age');
             $password = bcrypt($request->input('password'));
             $institution = $request->input('institution');
             $level_of_education = $request->input('level_of_education');
             $semester = $request->input('semester');
             $year = $request->input('year');
+
+            $role = $request->input('role');
+
+
+
             $organisation_value = $request->input('organisation_value');
+            $course = $request->input('course');
+
+
 
 
 
@@ -492,6 +702,11 @@ class UserController extends Controller
             $country = $request->input('country');
             $state = $request->input('state');
             $zip = $request->input('zip');
+
+            $organisation_phone = $request->input('organisation_phone');
+            $organisation_address = $request->input('organisation_address');
+            $nature_of_business = $request->input('nature_of_business');
+            $number_of_users = $request->input('number_of_users');
 
             // Generate random verification code
             $randomCode = '';
@@ -513,19 +728,28 @@ class UserController extends Controller
 
                     // return $organisation_email;
                     $orgdata = [
+                        'product' => $product,
                         'organisation_email' => $organisation_email,
                         'organisation_website' => $organisation_website,
                         'organisation_name' => $organisation_name,
                         'country' => $country,
                         'state' => $state,
                         'zip' => $zip,
+                        'organisation_phone' => $organisation_phone,
+                        'organisation_address' => $organisation_address,
+                        'nature_of_business' => $nature_of_business,
+                        'number_of_users' => $number_of_users,
+
                     ];
+
+                    // return $orgdata;
 
                     // Insert organisation data and get the ID
                     $organisation = Organisation::create($orgdata);
                     $organisationId = $organisation->id;
 
-                    $userdata = [
+                    $data = [
+                        'product' => $product,
                         'velification_code' => $randomCode,
                         'email' => $email,
                         'name' => $name,
@@ -538,24 +762,31 @@ class UserController extends Controller
                         'level_of_education' => $level_of_education,
                         'semester' => $semester,
                         'year' => $year,
+                        'course' => $course,
+                        'role' => $role,
                         'password' => $password,
                         'organisation_id' => $organisationId, // Nullable foreign key
                     ];
 
+                    // if ($request->hasFile('image')) {
+                    //     $orgdata['image'] = $request->file('image')->store('images', 'public');
+                    // }
+
                     // Insert user data
-                    User::create($userdata);
+                    User::create($data);
 
                     DB::commit(); // Commit the transaction
 
                     // Send verification email
-                    Mail::to($email)->send(new VerifyMail($userdata));
+                    Mail::to($email)->send(new VerifyMail($data));
 
                     return response()->json([
                         'success' => true,
                         'message' => 'Verification email sent successfully.',
                     ], 200);
                 } else {
-                    $userdata = [
+                    $data = [
+                        'product' => $product,
                         'velification_code' => $randomCode,
                         'email' => $email,
                         'name' => $name,
@@ -568,17 +799,20 @@ class UserController extends Controller
                         'level_of_education' => $level_of_education,
                         'semester' => $semester,
                         'year' => $year,
+                        'course' => $course,
                         'password' => $password,
                         'organisation_id' => $organisationId, // Nullable foreign key
                     ];
 
+                    // return $userdata;
+
                     // Insert user data
-                    User::create($userdata);
+                    User::create($data);
 
                     DB::commit(); // Commit the transaction
 
                     // Send verification email
-                    Mail::to($email)->send(new VerifyMail($userdata));
+                    Mail::to($email)->send(new VerifyMail($data));
 
                     return response()->json([
                         'success' => true,
@@ -604,6 +838,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
 
 
@@ -761,37 +996,44 @@ class UserController extends Controller
                 $transactionData = $data['data'];
 
 
-                return  $transactionData;
+                // return  $transactionData;
 
                 // Access specific data points
-                $transactionID = $transactionData['id'];
-                $transactionReference = $transactionData['tx_ref'];
-                $amount = $transactionData['amount'];
-                $currency = $transactionData['currency'];
-                $customerName = $transactionData['customer']['name'];
-                $customerEmail = $transactionData['customer']['email'];
-                $transactionStatus = $transactionData['status'];
-                $paymentType = $transactionData['payment_type'];
-                $createdAt = $transactionData['created_at'];
-                $bussiness_type = $transactionData['customer']['bussiness_type'];
+                $payment = ([
+                    'trans_id' => $transactionData['id'],
+                    'tx_ref'  => $transactionData['tx_ref'],
+                    'flw_ref' => $transactionData['flw_ref'],
+                    'account_id' => $transactionData['account_id'],
+                    'amount' => $transactionData['amount'],
+                    'device_fingerprint' => $transactionData['device_fingerprint'],
+                    'charged_amount' => $transactionData['charged_amount'],
+                    'currency' => $transactionData['flw_ref'],
+                    'app_fee' => $transactionData['app_fee'],
+                    'merchant_fee' => $transactionData['merchant_fee'],
+                    'processor_response' => $transactionData['processor_response'],
+                    'auth_model' => $transactionData['auth_model'],
+                    'ip' => $transactionData['ip'],
+                    'narration' => $transactionData['narration'],
+                    'status' => $transactionData['status'],
+                    'created_at' => $transactionData['created_at'],
+                    'amount_settled' => $transactionData['amount_settled'],
+                    'organisation_id'  => $transactionData['customer']['name'],
+
+
+
+                ]);
+
+                //    Payment::create($payment);
+                DB::table('paymets')->insert($payment);
+
+                return redirect('https://twogere.cognospheredynamics.com/feedback.html');
+
 
 
                 // You can now use these data points as needed
                 // For example, you might want to log them, save them to the database, etc.
                 // Here, we'll just dump them for demonstration purposes
-                return ([
-                    'Transaction ID' => $transactionID,
-                    'Transaction Reference' => $transactionReference,
-                    'Amount' => $amount,
-                    'Currency' => $currency,
-                    'Customer Name' => $customerName,
-                    'Customer Email' => $customerEmail,
-                    'Transaction Status' => $transactionStatus,
-                    'Payment Type' => $paymentType,
-                    'Created At' => $createdAt,
-                    'bussiness_type' => $bussiness_type
 
-                ]);
             } else {
                 // Handle the case where the transaction was not successfully fetched
                 return "Failed to fetch transaction data: " . $data['message'];
@@ -1055,6 +1297,7 @@ class UserController extends Controller
 
     public function readMessages($id)
     {
+        return 'yes';
         try {
             $chat = Chat::find($id);
             if (!$chat) {
@@ -1104,11 +1347,11 @@ class UserController extends Controller
     public function mobileRegistration()
     {
 
-        $phone='+256785557587';
-      $host ='https://3gpzjj.api.infobip.com';
-      $key='3aaf45891bb3478f7385caa52e1fe72c-bcc8c4f2-c0fe-4acd-9f59-da7076fec661';
+        $phone = '+256785557587';
+        $host = 'https://3gpzjj.api.infobip.com';
+        $key = '3aaf45891bb3478f7385caa52e1fe72c-bcc8c4f2-c0fe-4acd-9f59-da7076fec661';
 
-    
+
 
         $configuration = new Configuration(
             host: $host,
@@ -1117,34 +1360,33 @@ class UserController extends Controller
 
         $sendSmsApi = new SmsApi(config: $configuration);
 
-    $message = new SmsTextualMessage(
-        destinations: [
-            new SmsDestination(to: $phone)
-        ],
-        from: 'InfoSMS',
-        text: 'This is a dummy SMS message sent using infobip-api-php-client'
-    );
+        $message = new SmsTextualMessage(
+            destinations: [
+                new SmsDestination(to: $phone)
+            ],
+            from: 'InfoSMS',
+            text: 'This is a dummy SMS message sent using infobip-api-php-client'
+        );
 
-    $request = new SmsAdvancedTextualRequest(messages: [$message]);
+        $request = new SmsAdvancedTextualRequest(messages: [$message]);
 
-    try {
-        $smsResponse = $sendSmsApi->sendSmsMessage($request);
-        return response()->json([
-            'message' => 'Message sent successfully',
-            'data' => $smsResponse
-        ]);
-    } catch (ApiException $apiException) {
-        return response()->json([
-            'message' => 'Failed to send message',
-            'errors' => $apiException->getResponseBody()
-        ], 500);
-    } catch (Exception $e) {
-        return response()->json([
-            'message' => 'An error occurred',
-            'errors' => $e->getMessage()
-        ], 500);
-    }
-        
+        try {
+            $smsResponse = $sendSmsApi->sendSmsMessage($request);
+            return response()->json([
+                'message' => 'Message sent successfully',
+                'data' => $smsResponse
+            ]);
+        } catch (ApiException $apiException) {
+            return response()->json([
+                'message' => 'Failed to send message',
+                'errors' => $apiException->getResponseBody()
+            ], 500);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred',
+                'errors' => $e->getMessage()
+            ], 500);
+        }
     }
     // public function mobileRegistration()
     // {
@@ -1307,17 +1549,8 @@ class UserController extends Controller
 
 
 
-
-        // Define the URL of the AI server
-        // $url = 'https://api.openai.com/v1/engines/text-curie-
         $aiServerUrl = "https://ydegrees.pearlbuddy.com:8090/append?string=$string";
 
-        // $aiServerUrl = 'https://ydegrees.pearlbuddy.com:8090/append?string=hellopoooo';
-        // return $aiServerUrl;
-
-
-        //  https://forum.scpel.org/api/test112/1
-        // Initialize cURL session
 
         $curl = curl_init();
 

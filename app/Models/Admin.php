@@ -23,10 +23,16 @@ class Admin extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name',
         'email',
-        'location',
         'phone',
         'role',
         'image',
+        'dob',
+        'next_of_kin',
+        'next_of_kin_phone',
+        'nin',
+        'department',
+        'nssf',
+        'tin',
         'password',
     ];
 

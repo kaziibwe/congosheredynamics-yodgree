@@ -5,6 +5,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\OrganisationController;
+use App\Http\Controllers\PaymentController;
+use App\Models\Organisation;
 use Illuminate\Validation\ValidationException;
 
 /*
@@ -33,6 +36,8 @@ Route::group([
 
 
 
+      Route::post('registerTwogereAdmin', [UserController::class, 'registerTwogereAdmin'])->name('registerTwogereAdmin');
+
 
 
     Route::post('registerUser', [UserController::class, 'registerUser'])->name('registerUser');
@@ -50,7 +55,12 @@ Route::group([
 
 
     // route payment
-    Route::post('/payAidas', [UserController::class, 'initialize'])->name('pay');
+    Route::post('/payment', [UserController::class, 'initialize'])->name('pay');
+
+
+    Route::post('/orgPayments/{id}', [PaymentController::class, 'orgPayments'])->name('orgPayments');
+
+
 
 
     Route::get('/rave/callback', [UserController::class, 'callback'])->name('callback');
@@ -63,27 +73,27 @@ Route::group([
     Route::post('verifyingCode', [UserController::class, 'verifyingCode'])->name('verifyingCode');
 
 
-// create chart  with in the respons table
+    // create chart  with in the respons table
     Route::post('createNewChats', [UserController::class, 'createNewChats'])->name('createNewChats');
 
     // update chat
-        Route::put('updateNewChats', [UserController::class, 'updateNewChats'])->name('updateNewChats');
+    Route::put('updateNewChats', [UserController::class, 'updateNewChats'])->name('updateNewChats');
 
 
-// route to send prompt
+    // route to send prompt
     Route::post('createPrompts', [UserController::class, 'createPrompts'])->name('createPrompts');
 
-// route to send responses
-        Route::post('createResponse', [UserController::class, 'createResponse'])->name('createResponse');
+    // route to send responses
+    Route::post('createResponse', [UserController::class, 'createResponse'])->name('createResponse');
 
-// route to read  user prompts by user id
-Route::get('readChat/{id}', [UserController::class, 'readChat'])->name('readChat');
+    // route to read  user prompts by user id
+    Route::get('readChat/{id}', [UserController::class, 'readChat'])->name('readChat');
 
-// route to read responses  by prompt id
-Route::get('requestAndResponses/{id}', [UserController::class, 'requestAndResponses'])->name('requestAndResponses');
+    // route to read responses  by prompt id
+    Route::get('requestAndResponses/{id}', [UserController::class, 'requestAndResponses'])->name('requestAndResponses');
 
 
-// route to
+    // route to
     Route::post('aiApi', [UserController::class, 'aiApi'])->name('aiApi');
 
 
@@ -107,8 +117,8 @@ Route::get('requestAndResponses/{id}', [UserController::class, 'requestAndRespon
 
 
 
-      // read all   chats messages
-      Route::get('readMessages/{id}/chats', [UserController::class, 'readMessages'])->name('readMessages');
+    // read all   chats messages
+    Route::get('readMessages/{id}/chats', [UserController::class, 'readMessages'])->name('readMessages');
 
     //   delete chat
     Route::delete('deleteChat/{id}', [UserController::class, 'deleteChat'])->name('deleteChat');
@@ -117,11 +127,30 @@ Route::get('requestAndResponses/{id}', [UserController::class, 'requestAndRespon
     // Route::Post('mobileRegistration', [UserController::class, 'mobileRegistration'])->name('mobileRegistration');
 
 
-     // read all  admin
-     Route::get('getAllAdmin', [AdminController::class, 'getAllAdmin'])->name('getAllAdmin');
+    // read all  admin
+    Route::get('getAllAdmin', [AdminController::class, 'getAllAdmin'])->name('getAllAdmin');
 
     //  get the single admin
     Route::get('getSingleAdmin/{id}', [AdminController::class, 'getSingleAdmin'])->name('getSingleAdmin');
+
+    // get all organation for yodegree
+    Route::get('getAllOrganisationYodegree', [OrganisationController::class, 'getAllOrganisationYodegree'])->name('getAllOrganisationYodegree');
+
+    // get  all organisation for for  twogere
+    Route::get('getAllOrganisationTwogere', [OrganisationController::class, 'getAllOrganisationTwogere'])->name('getAllOrganisationTwogere');
+
+    // get independ twogere users
+    Route::get('getAllTwogereUsers', [OrganisationController::class, 'getAllTwogereUsers'])->name('getAllTwogereUsers');
+    // get all two gere you degree users
+    Route::get('getAllYodegreeUsers', [OrganisationController::class, 'getAllYodegreeUsers'])->name('getAllYodegreeUsers');
+
+    Route::get('getAllOrganisationUsers/{id}', [OrganisationController::class, 'getAllOrganisationUsers'])->name('getAllOrganisationUsers');
+
+
+    // AdminProfile
+    Route::get('adminProfile/{id}', [AdminController::class, 'adminProfile'])->name('adminProfile');
+
+
 
 
 });

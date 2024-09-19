@@ -29,6 +29,7 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'phone1',
         'gender',
+        'course',
         'age',
         'login_status',
         'twogere_customer_id',
@@ -38,6 +39,10 @@ class User extends Authenticatable implements JWTSubject
         'level_of_education',
         'semester',
         'year',
+        'product',
+
+
+        'role',
         'organisation_id',
 
     ];
@@ -84,8 +89,14 @@ class User extends Authenticatable implements JWTSubject
 
     // }
 
-        public function chats() // Ensure the method name is 'prompts' and not 'promps'
+    public function chats() // Ensure the method name is 'prompts' and not 'promps'
     {
         return $this->hasMany(Chat::class);
+    }
+
+
+    public function organisation(){
+        return $this->belongsTo(Organisation::class, 'organisation_id');
+
     }
 }
